@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(npm *)",
+      "PowerShell(Move-Item *)",
+      "PowerShell(gh auth *)"
+    ]
+  }
+}
