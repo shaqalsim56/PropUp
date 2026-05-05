@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { View, ActivityIndicator, StyleSheet } from 'react-native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
@@ -71,7 +70,6 @@ function LandlordNavigator() {
 
 export default function RootNavigator() {
   const { session, profile, loading } = useAuth()
-  const [locationDone, setLocationDone] = useState(false)
 
   if (loading) {
     return (
@@ -83,8 +81,10 @@ export default function RootNavigator() {
 
   if (!session || !profile) return <AuthNavigator />
 
-  if (profile.role === 'student' && !profile.campus_lat && !locationDone) {
-    return <LocationPermissionScreen onComplete={() => setLocationDone(true)} />
+  // Shown once — both "Allow" and "Not now" write campus_lat to the DB,
+  // so this gate never triggers again for the same user after that.
+  if (profile.role === 'student' && !profile.campus_lat) {
+    return <LocationPermissionScreen onComplete={() => {}} />
   }
 
   if (profile.role === 'landlord') return <LandlordNavigator />

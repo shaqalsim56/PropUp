@@ -15,17 +15,26 @@ export default function LocationPermissionScreen({ onComplete }: Props) {
   const { session, refreshProfile } = useAuth()
   const [loading, setLoading] = useState(false)
 
+  // Kingston city centre — default when location is skipped or denied
+  const KINGSTON = { campus_lat: 17.997, campus_lng: -76.794 }
+
+  async function saveLocation(lat: number, lng: number) {
+    await supabase
+      .from('profiles')
+      .update({ campus_lat: lat, campus_lng: lng })
+      .eq('id', session!.user.id)
+    await refreshProfile()
+  }
+
   async function handleAllow() {
     setLoading(true)
     const { status } = await Location.requestForegroundPermissionsAsync()
 
     if (status === 'granted') {
       const loc = await Location.getCurrentPositionAsync({})
-      await supabase
-        .from('profiles')
-        .update({ campus_lat: loc.coords.latitude, campus_lng: loc.coords.longitude })
-        .eq('id', session!.user.id)
-      await refreshProfile()
+      await saveLocation(loc.coords.latitude, loc.coords.longitude)
+    } else {
+      await saveLocation(KINGSTON.campus_lat, KINGSTON.campus_lng)
     }
 
     setLoading(false)
@@ -33,6 +42,7 @@ export default function LocationPermissionScreen({ onComplete }: Props) {
   }
 
   async function handleSkip() {
+    await saveLocation(KINGSTON.campus_lat, KINGSTON.campus_lng)
     onComplete()
   }
 
