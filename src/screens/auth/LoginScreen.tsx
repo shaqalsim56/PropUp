@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import {
   View, Text, StyleSheet, ScrollView, KeyboardAvoidingView,
-  Platform, TouchableOpacity,
+  Platform, TouchableOpacity, Animated,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
@@ -19,6 +19,7 @@ export default function LoginScreen({ navigation }: Props) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
 
   async function handleLogin() {
@@ -42,8 +43,11 @@ export default function LoginScreen({ navigation }: Props) {
         ? 'Incorrect email or password.'
         : error.message
       )
+      return
     }
-    // On success, onAuthStateChange fires and RootNavigator redirects automatically
+
+    setSuccess(true)
+    // onAuthStateChange fires and RootNavigator redirects automatically
   }
 
   return (
@@ -70,6 +74,7 @@ export default function LoginScreen({ navigation }: Props) {
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
+              editable={!success}
             />
             <Input
               label="Password"
@@ -77,16 +82,23 @@ export default function LoginScreen({ navigation }: Props) {
               value={password}
               onChangeText={setPassword}
               secureTextEntry
+              editable={!success}
             />
 
             {error ? <Text style={styles.error}>{error}</Text> : null}
 
-            <Button
-              title="Log in"
-              variant="purple"
-              onPress={handleLogin}
-              loading={loading}
-            />
+            {success ? (
+              <View style={styles.successBanner}>
+                <Text style={styles.successText}>✓  Logged in successfully</Text>
+              </View>
+            ) : (
+              <Button
+                title="Log in"
+                variant="purple"
+                onPress={handleLogin}
+                loading={loading}
+              />
+            )}
 
             <View style={styles.footer}>
               <Text style={styles.footerText}>Don't have an account?</Text>
@@ -108,6 +120,20 @@ const styles = StyleSheet.create({
   title: { fontSize: 24, fontWeight: '700', color: Colors.textPrimary, marginBottom: 24 },
   form: { gap: 14 },
   error: { fontSize: 13, color: '#C0392B' },
+  successBanner: {
+    height: 50,
+    borderRadius: 12,
+    backgroundColor: Colors.green50,
+    borderWidth: 1,
+    borderColor: Colors.green600,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  successText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: Colors.green600,
+  },
   footer: { flexDirection: 'row', justifyContent: 'center', paddingVertical: 4 },
   footerText: { fontSize: 13, color: Colors.textTertiary },
   footerLink: { fontSize: 13, color: Colors.purple600, fontWeight: '500' },
