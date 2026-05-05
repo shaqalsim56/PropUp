@@ -8,6 +8,7 @@ import AuthNavigator from './AuthNavigator'
 import LocationPermissionScreen from '../screens/auth/LocationPermissionScreen'
 import HomeScreen from '../screens/student/HomeScreen'
 import ListingDetailScreen from '../screens/student/ListingDetailScreen'
+import ProfileScreen from '../screens/student/ProfileScreen'
 import DashboardScreen from '../screens/landlord/DashboardScreen'
 import { StudentStackParamList, StudentTabParamList, LandlordStackParamList } from './types'
 
@@ -42,7 +43,7 @@ function StudentTabs() {
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Events" component={PlaceholderScreen} />
       <Tab.Screen name="Saved" component={PlaceholderScreen} />
-      <Tab.Screen name="Profile" component={PlaceholderScreen} />
+      <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>
   )
 }
