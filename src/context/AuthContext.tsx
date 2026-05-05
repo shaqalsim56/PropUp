@@ -29,7 +29,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .eq('id', userId)
       .single()
 
-    // The DB trigger may still be running on first signup — retry once
+    // Trigger may still be running on first signup — retry once
     if (!data) {
       await new Promise(r => setTimeout(r, 800))
       const { data: retried } = await supabase
@@ -38,6 +38,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .eq('id', userId)
         .single()
       data = retried
+    }
+
+    // Trigger never ran for this user — create profile from auth metadata
+    if (!data) {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        await supabase.from('profiles').insert({
+          id: userId,
+          role: user.user_metadata?.role ?? 'student',
+          full_name: user.user_metadata?.full_name ?? '',
+          phone: user.phone ?? null,
+        })
+        const { data: created } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .single()
+        data = created
+      }
     }
 
     setProfile(data)
