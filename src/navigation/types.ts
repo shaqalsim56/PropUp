@@ -5,6 +5,11 @@ export type AuthStackParamList = {
   Login: undefined
 }
 
+export type StudentStackParamList = {
+  MainTabs: undefined
+  ListingDetail: { listingId: string }
+}
+
 export type StudentTabParamList = {
   Home: undefined
   Events: undefined
