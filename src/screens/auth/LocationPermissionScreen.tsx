@@ -5,6 +5,7 @@ import * as Location from 'expo-location'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { Colors } from '../../constants/colors'
+import { Fonts } from '../../constants/fonts'
 import Button from '../../components/ui/Button'
 
 interface Props {
@@ -61,7 +62,7 @@ export default function LocationPermissionScreen({ onComplete }: Props) {
       <View style={styles.actions}>
         <Button
           title="Allow location"
-          variant="purple"
+          variant="green"
           onPress={handleAllow}
           loading={loading}
         />
@@ -93,19 +94,19 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: Colors.purple50,
+    backgroundColor: Colors.green50,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 8,
   },
-  icon: { fontSize: 36 },
+  icon: { fontFamily: Fonts.regular, fontSize: 36 },
   title: {
     fontSize: 22,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.textPrimary,
     textAlign: 'center',
   },
-  description: {
+  description: { fontFamily: Fonts.regular,
     fontSize: 14,
     color: Colors.textSecondary,
     textAlign: 'center',

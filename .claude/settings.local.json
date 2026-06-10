@@ -1,9 +1,26 @@
 {
   "permissions": {
     "allow": [
-      "PowerShell(npm *)",
-      "PowerShell(Move-Item *)",
-      "PowerShell(gh auth *)"
+      "Bash(npm *)",
+      "Bash(git *)",
+      "Bash(npx *)",
+      "Read(**)",
+      "Edit(**)",
+      "Write(**)",
+      "Glob(**)",
+      "Grep(**)",
+      "Bash(powershell *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" https://kcmiwvffeuqhmwzyumnq.supabase.co/auth/v1/health)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"https://kcmiwvffeuqhmwzyumnq.supabase.co/rest/v1/\" -H \"apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjbWl3dmZmZXVxaG13enl1bW5xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4NTQxNTEsImV4cCI6MjA5MzQzMDE1MX0.wfftWMDW6xX6C_Npq5sKCDTDps8AQ50vBroKT3TOWhc\")",
+      "Bash(node -e \"console.log\\('expo', require\\('./node_modules/expo/package.json'\\).version\\)\")",
+      "Bash(nslookup kcmiwvffeuqhmwzyumnq.supabase.co)",
+      "Bash(nslookup kcmiwvffeuqhmwzyumnq.supabase.co 1.1.1.1)",
+      "Bash(node *)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(curl -s https://kcmiwvffeuqhmwzyumnq.supabase.co/auth/v1/settings -H 'apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjbWl3dmZmZXVxaG13enl1bW5xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4NTQxNTEsImV4cCI6MjA5MzQzMDE1MX0.wfftWMDW6xX6C_Npq5sKCDTDps8AQ50vBroKT3TOWhc')",
+      "Bash(curl -sI 'https://kcmiwvffeuqhmwzyumnq.supabase.co/auth/v1/authorize?provider=google&redirect_to=propup%3A%2F%2F' -H 'apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjbWl3dmZmZXVxaG13enl1bW5xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4NTQxNTEsImV4cCI6MjA5MzQzMDE1MX0.wfftWMDW6xX6C_Npq5sKCDTDps8AQ50vBroKT3TOWhc')",
+      "Bash(curl -s -w '\\\\nHTTP %{http_code}\\\\n' https://kcmiwvffeuqhmwzyumnq.supabase.co/auth/v1/settings -H 'apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjbWl3dmZmZXVxaG13enl1bW5xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4NTQxNTEsImV4cCI6MjA5MzQzMDE1MX0.wfftWMDW6xX6C_Npq5sKCDTDps8AQ50vBroKT3TOWhc')",
+      "Bash(curl -s -o /dev/null -w 'code=%{http_code} redirect=%{redirect_url}\\\\n' 'https://kcmiwvffeuqhmwzyumnq.supabase.co/auth/v1/authorize?provider=google&redirect_to=propup%3A%2F%2F' -H 'apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjbWl3dmZmZXVxaG13enl1bW5xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4NTQxNTEsImV4cCI6MjA5MzQzMDE1MX0.wfftWMDW6xX6C_Npq5sKCDTDps8AQ50vBroKT3TOWhc')"
     ]
   }
 }

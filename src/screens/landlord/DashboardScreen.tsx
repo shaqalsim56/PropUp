@@ -3,6 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { Colors } from '../../constants/colors'
+import { Fonts } from '../../constants/fonts'
 
 export default function DashboardScreen() {
   const { profile } = useAuth()
@@ -26,8 +27,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 12,
   },
-  greeting: { fontSize: 22, fontWeight: '700', color: Colors.textPrimary },
-  sub: { fontSize: 14, color: Colors.textSecondary },
+  greeting: { fontSize: 22, fontFamily: Fonts.bold, color: Colors.textPrimary },
+  sub: { fontFamily: Fonts.regular, fontSize: 14, color: Colors.textSecondary },
   signOut: { marginTop: 24, paddingVertical: 10, paddingHorizontal: 24 },
-  signOutText: { fontSize: 14, color: Colors.green600, fontWeight: '500' },
+  signOutText: { fontFamily: Fonts.regular, fontSize: 14, color: Colors.green600 },
 })

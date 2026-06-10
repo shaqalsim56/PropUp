@@ -1,7 +1,8 @@
 import { TouchableOpacity, Text, StyleSheet, ActivityIndicator, ViewStyle } from 'react-native'
 import { Colors } from '../../constants/colors'
+import { Fonts } from '../../constants/fonts'
 
-type Variant = 'purple' | 'green' | 'pink' | 'outline'
+type Variant = 'green' | 'pink' | 'outline'
 
 interface Props {
   title: string
@@ -13,20 +14,18 @@ interface Props {
 }
 
 const BG: Record<Variant, string> = {
-  purple: Colors.purple600,
   green: Colors.green600,
   pink: Colors.pink600,
   outline: 'transparent',
 }
 
 const FG: Record<Variant, string> = {
-  purple: Colors.purple50,
-  green: Colors.green50,
-  pink: Colors.pink50,
+  green: Colors.white,
+  pink: Colors.white,
   outline: Colors.textSecondary,
 }
 
-export default function Button({ title, onPress, variant = 'purple', loading = false, disabled = false, style }: Props) {
+export default function Button({ title, onPress, variant = 'green', loading = false, disabled = false, style }: Props) {
   return (
     <TouchableOpacity
       style={[
@@ -62,6 +61,6 @@ const styles = StyleSheet.create({
   dimmed: { opacity: 0.6 },
   label: {
     fontSize: 15,
-    fontWeight: '600',
+    fontFamily: Fonts.bold,
   },
 })

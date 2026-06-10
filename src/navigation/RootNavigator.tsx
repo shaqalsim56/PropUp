@@ -25,7 +25,7 @@ function StudentTabs() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: Colors.purple600,
+        tabBarActiveTintColor: Colors.green600,
         tabBarInactiveTintColor: Colors.textTertiary,
         tabBarStyle: { backgroundColor: Colors.bgPrimary, borderTopColor: Colors.borderLight },
         tabBarIcon: ({ focused, color, size }) => {
@@ -75,7 +75,7 @@ export default function RootNavigator() {
   if (loading) {
     return (
       <View style={styles.splash}>
-        <ActivityIndicator color={Colors.purple600} size="large" />
+        <ActivityIndicator color={Colors.green600} size="large" />
       </View>
     )
   }

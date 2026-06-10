@@ -2,18 +2,22 @@
   "expo": {
     "name": "PropUp",
     "slug": "propup",
+    "scheme": "propup",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/logo.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "config": {
+        "googleMapsApiKey": "AIzaSyDdZxlrMrPgzyPUNdXZbl7XDyFWzSa3nwo"
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -21,10 +25,25 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyDdZxlrMrPgzyPUNdXZbl7XDyFWzSa3nwo"
+        }
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      "expo-font",
+      "expo-web-browser",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "PropUp needs access to your photos so you can upload your student ID."
+        }
+      ]
+    ]
   }
 }

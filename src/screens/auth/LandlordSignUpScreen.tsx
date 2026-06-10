@@ -5,11 +5,15 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
+import { Ionicons } from '@expo/vector-icons'
 import { supabase } from '../../lib/supabase'
 import { AuthStackParamList } from '../../navigation/types'
 import { Colors } from '../../constants/colors'
-import Input from '../../components/ui/Input'
-import Button from '../../components/ui/Button'
+import { Fonts } from '../../constants/fonts'
+import { useGoogleSignIn } from '../../hooks/useGoogleSignIn'
+import IconInput from '../../components/ui/IconInput'
+import PillButton from '../../components/ui/PillButton'
+import GoogleButton from '../../components/ui/GoogleButton'
 
 type Props = {
   navigation: NativeStackNavigationProp<AuthStackParamList, 'LandlordSignUp'>
@@ -21,7 +25,7 @@ export default function LandlordSignUpScreen({ navigation }: Props) {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [pendingConfirm, setPendingConfirm] = useState(false)
+  const google = useGoogleSignIn()
 
   async function handleSignUp() {
     if (!fullName.trim() || !email.trim() || !password) {
@@ -36,7 +40,7 @@ export default function LandlordSignUpScreen({ navigation }: Props) {
     setLoading(true)
     setError('')
 
-    const { data, error } = await supabase.auth.signUp({
+    const { error } = await supabase.auth.signUp({
       email: email.trim().toLowerCase(),
       password,
       options: { data: { full_name: fullName.trim(), role: 'landlord' } },
@@ -48,30 +52,7 @@ export default function LandlordSignUpScreen({ navigation }: Props) {
       setError(error.message)
       return
     }
-
-    if (data.user && !data.session) {
-      setPendingConfirm(true)
-    }
-  }
-
-  if (pendingConfirm) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.confirmBox}>
-          <Text style={styles.confirmTitle}>Check your email</Text>
-          <Text style={styles.confirmBody}>
-            We sent a confirmation link to{' '}
-            <Text style={{ fontWeight: '600' }}>{email.trim().toLowerCase()}</Text>
-            {'. Tap it to activate your account.'}
-          </Text>
-          <Button
-            title="Back to login"
-            variant="green"
-            onPress={() => navigation.navigate('Login')}
-          />
-        </View>
-      </SafeAreaView>
-    )
+    // onAuthStateChange handles navigation from here.
   }
 
   return (
@@ -85,47 +66,59 @@ export default function LandlordSignUpScreen({ navigation }: Props) {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Text style={styles.back}>← Back</Text>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+            <Ionicons name="chevron-back" size={24} color={Colors.black} />
           </TouchableOpacity>
 
-          <Text style={styles.title}>Create landlord account</Text>
+          <Text style={styles.title}>Create Your Account</Text>
+          <Text style={styles.subtitle}>List your rentals and reach students near campus</Text>
 
           <View style={styles.form}>
-            <Input
-              label="Full name"
-              placeholder="Michael Brown"
+            <IconInput
+              label="Full Name"
+              icon="person-outline"
+              placeholder="Enter Full Name"
               value={fullName}
               onChangeText={setFullName}
               autoCapitalize="words"
             />
-            <Input
-              label="Email"
-              placeholder="landlord@gmail.com"
+            <IconInput
+              label="Email Address"
+              icon="mail-outline"
+              placeholder="Enter Your Email"
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
             />
-            <Input
+            <IconInput
               label="Password"
-              placeholder="Min 6 characters"
+              icon="lock-closed-outline"
+              placeholder="Enter Your Password"
               value={password}
               onChangeText={setPassword}
-              secureTextEntry
+              secure
             />
 
-            {error ? <Text style={styles.error}>{error}</Text> : null}
+            {error || google.error
+              ? <Text style={styles.error}>{error || google.error}</Text>
+              : null}
 
-            <Button
-              title="Create account"
-              variant="green"
-              onPress={handleSignUp}
-              loading={loading}
-            />
+            <PillButton title="Create Account" onPress={handleSignUp} loading={loading} />
 
-            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-              <Text style={styles.loginLink}>Already have an account? Log in</Text>
-            </TouchableOpacity>
+            <View style={styles.divider}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>or</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            <GoogleButton onPress={google.signIn} loading={google.loading} />
+
+            <View style={styles.footer}>
+              <Text style={styles.footerText}>Already have an account?</Text>
+              <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+                <Text style={styles.footerLink}> Log in</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -134,14 +127,27 @@ export default function LandlordSignUpScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.bgPage },
+  safe: { flex: 1, backgroundColor: Colors.white },
   container: { padding: 24, paddingBottom: 40 },
-  confirmBox: { flex: 1, padding: 24, justifyContent: 'center', gap: 16 },
-  confirmTitle: { fontSize: 22, fontWeight: '700', color: Colors.textPrimary },
-  confirmBody: { fontSize: 15, color: Colors.textSecondary, lineHeight: 22 },
-  back: { fontSize: 14, color: Colors.green600, marginBottom: 20 },
-  title: { fontSize: 24, fontWeight: '700', color: Colors.textPrimary, marginBottom: 24 },
-  form: { gap: 14 },
-  error: { fontSize: 13, color: '#C0392B' },
-  loginLink: { textAlign: 'center', fontSize: 13, color: Colors.textTertiary, paddingVertical: 4 },
+  backBtn: { width: 40, height: 40, justifyContent: 'center', marginLeft: -8, marginBottom: 12 },
+
+  title: { fontFamily: Fonts.bold, fontSize: 32, color: Colors.black },
+  subtitle: {
+    fontFamily: Fonts.regular,
+    fontSize: 15,
+    color: Colors.textSecondary,
+    marginTop: 6,
+    marginBottom: 28,
+  },
+
+  form: { gap: 18 },
+  error: { fontFamily: Fonts.regular, fontSize: 13, color: '#C0392B' },
+
+  divider: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  dividerLine: { flex: 1, height: 1, backgroundColor: Colors.borderLight },
+  dividerText: { fontFamily: Fonts.regular, fontSize: 13, color: Colors.textTertiary },
+
+  footer: { flexDirection: 'row', justifyContent: 'center', paddingVertical: 4 },
+  footerText: { fontFamily: Fonts.regular, fontSize: 13, color: Colors.textTertiary },
+  footerLink: { fontFamily: Fonts.bold, fontSize: 13, color: Colors.green600 },
 })

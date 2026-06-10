@@ -1,9 +1,9 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
   TextInput, Modal, Image, ScrollView, ActivityIndicator,
 } from 'react-native'
-import MapView, { Marker, Region } from 'react-native-maps'
+import MapView, { Marker, Region, PROVIDER_GOOGLE } from 'react-native-maps'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
@@ -12,9 +12,11 @@ import { useAuth } from '../../context/AuthContext'
 import { useListings } from '../../hooks/useListings'
 import { supabase } from '../../lib/supabase'
 import { Colors } from '../../constants/colors'
+import { Fonts } from '../../constants/fonts'
 import { StudentStackParamList } from '../../navigation/types'
 import { ListingWithDetails } from '../../types/database.types'
 import { haversineKm, formatDistance, formatPrice } from '../../utils/distance'
+import StudentIdModal from '../../components/StudentIdModal'
 
 // ─── Kingston, Jamaica default coords ──────────────────────
 const DEFAULT_LAT = 17.997
@@ -50,8 +52,8 @@ function ListingCard({
       <View style={[styles.cardImage, compact && styles.cardImageCompact]}>
         {photoUrl
           ? <Image source={{ uri: photoUrl }} style={StyleSheet.absoluteFill} resizeMode="cover" />
-          : <View style={[StyleSheet.absoluteFill, { backgroundColor: Colors.purple50, alignItems: 'center', justifyContent: 'center' }]}>
-              <Ionicons name="home-outline" size={compact ? 18 : 24} color={Colors.purple400} />
+          : <View style={[StyleSheet.absoluteFill, { backgroundColor: Colors.green50, alignItems: 'center', justifyContent: 'center' }]}>
+              <Ionicons name="home-outline" size={compact ? 18 : 24} color={Colors.green400} />
             </View>
         }
       </View>
@@ -143,6 +145,15 @@ export default function HomeScreen() {
   const [search, setSearch] = useState('')
   const [filterVisible, setFilterVisible] = useState(false)
   const [filters, setFilters] = useState<Filters>({ maxPrice: '', bedrooms: null })
+  const [verifyVisible, setVerifyVisible] = useState(false)
+
+  // Students must verify their ID before they can open a listing. They can
+  // still browse the map/list in the meantime.
+  const needsVerification = profile?.role === 'student' && !profile?.student_id_url
+
+  useEffect(() => {
+    if (needsVerification) setVerifyVisible(true)
+  }, [needsVerification])
 
   const userLat = profile?.campus_lat ?? DEFAULT_LAT
   const userLng = profile?.campus_lng ?? DEFAULT_LNG
@@ -171,6 +182,7 @@ export default function HomeScreen() {
   const hasActiveFilter = !!filters.maxPrice || filters.bedrooms !== null
 
   function goToDetail(id: string) {
+    if (needsVerification) { setVerifyVisible(true); return }
     navigation.navigate('ListingDetail', { listingId: id })
   }
 
@@ -201,7 +213,7 @@ export default function HomeScreen() {
           <Ionicons
             name="options-outline"
             size={18}
-            color={hasActiveFilter ? Colors.purple50 : Colors.purple600}
+            color={hasActiveFilter ? Colors.green50 : Colors.green600}
           />
         </TouchableOpacity>
       </View>
@@ -224,16 +236,25 @@ export default function HomeScreen() {
         </Text>
       </View>
 
+      {needsVerification && (
+        <TouchableOpacity style={styles.verifyBanner} onPress={() => setVerifyVisible(true)} activeOpacity={0.8}>
+          <Ionicons name="shield-checkmark-outline" size={16} color={Colors.green600} />
+          <Text style={styles.verifyBannerText}>Verify your student ID to unlock listings</Text>
+          <Ionicons name="chevron-forward" size={16} color={Colors.green600} />
+        </TouchableOpacity>
+      )}
+
       {/* ── Content ── */}
       {loading ? (
         <View style={styles.center}>
-          <ActivityIndicator color={Colors.purple600} />
+          <ActivityIndicator color={Colors.green600} />
         </View>
       ) : viewMode === 'map' ? (
         /* MAP VIEW */
         <View style={styles.mapContainer}>
           <MapView
             ref={mapRef}
+            provider={PROVIDER_GOOGLE}
             style={StyleSheet.absoluteFill}
             initialRegion={initialRegion}
             onPress={() => setSelected(null)}
@@ -320,6 +341,8 @@ export default function HomeScreen() {
         onApply={setFilters}
         onClose={() => setFilterVisible(false)}
       />
+
+      <StudentIdModal visible={verifyVisible} onClose={() => setVerifyVisible(false)} />
     </SafeAreaView>
   )
 }
@@ -347,16 +370,16 @@ const styles = StyleSheet.create({
     borderWidth: 0.5,
     borderColor: Colors.borderLight,
   },
-  searchInput: { flex: 1, fontSize: 14, color: Colors.textPrimary },
+  searchInput: { fontFamily: Fonts.regular, flex: 1, fontSize: 14, color: Colors.textPrimary },
   filterBtn: {
     width: 42,
     height: 42,
     borderRadius: 10,
-    backgroundColor: Colors.purple50,
+    backgroundColor: Colors.green50,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  filterBtnActive: { backgroundColor: Colors.purple600 },
+  filterBtnActive: { backgroundColor: Colors.green600 },
 
   toggleRow: {
     flexDirection: 'row',
@@ -371,10 +394,25 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: Colors.bgSecondary,
   },
-  toggleTabActive: { backgroundColor: Colors.purple600 },
-  toggleText: { fontSize: 13, fontWeight: '500', color: Colors.textSecondary },
-  toggleTextActive: { color: Colors.purple50 },
-  listingCount: { marginLeft: 'auto', fontSize: 12, color: Colors.textTertiary },
+  toggleTabActive: { backgroundColor: Colors.green600 },
+  toggleText: { fontFamily: Fonts.regular, fontSize: 13, color: Colors.textSecondary },
+  toggleTextActive: { color: Colors.green50 },
+  listingCount: { fontFamily: Fonts.regular, marginLeft: 'auto', fontSize: 12, color: Colors.textTertiary },
+
+  verifyBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginHorizontal: 16,
+    marginBottom: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: Colors.green50,
+    borderWidth: 1,
+    borderColor: Colors.green600,
+  },
+  verifyBannerText: { flex: 1, fontFamily: Fonts.bold, fontSize: 13, color: Colors.green600 },
 
   mapContainer: { flex: 1, overflow: 'hidden' },
   mapEmpty: {
@@ -390,7 +428,7 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 3,
   },
-  mapEmptyText: { fontSize: 13, color: Colors.textSecondary },
+  mapEmptyText: { fontFamily: Fonts.regular, fontSize: 13, color: Colors.textSecondary },
 
   markerBubble: {
     backgroundColor: Colors.bgPrimary,
@@ -398,17 +436,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderWidth: 1.5,
-    borderColor: Colors.purple600,
+    borderColor: Colors.green600,
     shadowColor: '#000',
     shadowOpacity: 0.12,
     shadowRadius: 4,
     elevation: 3,
   },
   markerBubbleSelected: {
-    backgroundColor: Colors.purple600,
+    backgroundColor: Colors.green600,
   },
-  markerText: { fontSize: 12, fontWeight: '700', color: Colors.purple600 },
-  markerTextSelected: { color: Colors.purple50 },
+  markerText: { fontSize: 12, fontFamily: Fonts.bold, color: Colors.green600 },
+  markerTextSelected: { color: Colors.green50 },
 
   mapCard: {
     position: 'absolute',
@@ -455,8 +493,8 @@ const styles = StyleSheet.create({
     gap: 3,
     justifyContent: 'center',
   },
-  cardTitle: { fontSize: 14, fontWeight: '600', color: Colors.textPrimary },
-  cardPrice: { fontSize: 13, fontWeight: '600', color: Colors.purple600 },
+  cardTitle: { fontSize: 14, fontFamily: Fonts.bold, color: Colors.textPrimary },
+  cardPrice: { fontSize: 13, fontFamily: Fonts.bold, color: Colors.green600 },
   cardMeta: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 },
   pill: {
     backgroundColor: Colors.green50,
@@ -464,13 +502,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 7,
     paddingVertical: 2,
   },
-  pillText: { fontSize: 11, fontWeight: '500', color: Colors.green600 },
-  cardDist: { fontSize: 11, color: Colors.textTertiary },
-  cardBeds: { fontSize: 11, color: Colors.textTertiary },
+  pillText: { fontFamily: Fonts.regular, fontSize: 11, color: Colors.green600 },
+  cardDist: { fontFamily: Fonts.regular, fontSize: 11, color: Colors.textTertiary },
+  cardBeds: { fontFamily: Fonts.regular, fontSize: 11, color: Colors.textTertiary },
 
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 10 },
-  emptyText: { fontSize: 14, color: Colors.textSecondary },
-  emptyAction: { fontSize: 13, color: Colors.purple600, fontWeight: '500' },
+  emptyText: { fontFamily: Fonts.regular, fontSize: 14, color: Colors.textSecondary },
+  emptyAction: { fontFamily: Fonts.regular, fontSize: 13, color: Colors.green600 },
 
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.3)' },
   filterSheet: {
@@ -489,9 +527,9 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     marginBottom: 8,
   },
-  filterTitle: { fontSize: 17, fontWeight: '700', color: Colors.textPrimary },
-  filterLabel: { fontSize: 13, fontWeight: '500', color: Colors.textSecondary, marginTop: 4 },
-  filterInput: {
+  filterTitle: { fontSize: 17, fontFamily: Fonts.bold, color: Colors.textPrimary },
+  filterLabel: { fontFamily: Fonts.regular, fontSize: 13, color: Colors.textSecondary, marginTop: 4 },
+  filterInput: { fontFamily: Fonts.regular,
     height: 46,
     borderRadius: 10,
     backgroundColor: Colors.bgSecondary,
@@ -510,9 +548,9 @@ const styles = StyleSheet.create({
     borderWidth: 0.5,
     borderColor: Colors.borderLight,
   },
-  filterPillActive: { backgroundColor: Colors.purple600, borderColor: Colors.purple600 },
-  filterPillText: { fontSize: 13, fontWeight: '500', color: Colors.textSecondary },
-  filterPillTextActive: { color: Colors.purple50 },
+  filterPillActive: { backgroundColor: Colors.green600, borderColor: Colors.green600 },
+  filterPillText: { fontFamily: Fonts.regular, fontSize: 13, color: Colors.textSecondary },
+  filterPillTextActive: { color: Colors.green50 },
   filterActions: { flexDirection: 'row', gap: 10, marginTop: 8 },
   filterReset: {
     flex: 1,
@@ -523,14 +561,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  filterResetText: { fontSize: 15, fontWeight: '600', color: Colors.textSecondary },
+  filterResetText: { fontSize: 15, fontFamily: Fonts.bold, color: Colors.textSecondary },
   filterApply: {
     flex: 2,
     height: 46,
     borderRadius: 12,
-    backgroundColor: Colors.purple600,
+    backgroundColor: Colors.green600,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  filterApplyText: { fontSize: 15, fontWeight: '600', color: Colors.purple50 },
+  filterApplyText: { fontSize: 15, fontFamily: Fonts.bold, color: Colors.green50 },
 })

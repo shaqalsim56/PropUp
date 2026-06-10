@@ -8,6 +8,7 @@ export interface Profile {
   university: string | null
   campus_lat: number | null
   campus_lng: number | null
+  student_id_url: string | null
   created_at: string
   updated_at: string
 }

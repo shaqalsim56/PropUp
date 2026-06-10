@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { Colors } from '../../constants/colors'
+import { Fonts } from '../../constants/fonts'
 import { StudentStackParamList } from '../../navigation/types'
 import { ListingWithDetails } from '../../types/database.types'
 import { formatPrice, haversineKm, formatDistance } from '../../utils/distance'
@@ -99,7 +100,7 @@ export default function ListingDetailScreen({ route, navigation }: Props) {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator color={Colors.purple600} size="large" />
+        <ActivityIndicator color={Colors.green600} size="large" />
       </View>
     )
   }
@@ -130,7 +131,7 @@ export default function ListingDetailScreen({ route, navigation }: Props) {
           <Ionicons
             name={saved ? 'bookmark' : 'bookmark-outline'}
             size={22}
-            color={saved ? Colors.purple600 : Colors.textPrimary}
+            color={saved ? Colors.green600 : Colors.textPrimary}
           />
         </TouchableOpacity>
       </View>
@@ -166,7 +167,7 @@ export default function ListingDetailScreen({ route, navigation }: Props) {
           </View>
         ) : (
           <View style={[styles.photoPlaceholder, { alignItems: 'center', justifyContent: 'center' }]}>
-            <Ionicons name="home-outline" size={52} color={Colors.purple400} />
+            <Ionicons name="home-outline" size={52} color={Colors.green400} />
           </View>
         )}
 
@@ -252,8 +253,8 @@ export default function ListingDetailScreen({ route, navigation }: Props) {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.bgPage },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 },
-  errorText: { fontSize: 15, color: Colors.textSecondary },
-  errorAction: { fontSize: 14, color: Colors.purple600, fontWeight: '500' },
+  errorText: { fontFamily: Fonts.regular, fontSize: 15, color: Colors.textSecondary },
+  errorAction: { fontFamily: Fonts.regular, fontSize: 14, color: Colors.green600 },
 
   header: {
     flexDirection: 'row',
@@ -277,7 +278,7 @@ const styles = StyleSheet.create({
   photoPlaceholder: {
     width: SCREEN_W,
     height: PHOTO_H,
-    backgroundColor: Colors.purple50,
+    backgroundColor: Colors.green50,
   },
   photoDots: {
     flexDirection: 'row',
@@ -292,8 +293,8 @@ const styles = StyleSheet.create({
 
   body: { padding: 20, gap: 10 },
   titleRow: { flexDirection: 'row', alignItems: 'flex-start' },
-  title: { flex: 1, fontSize: 22, fontWeight: '700', color: Colors.textPrimary, lineHeight: 28 },
-  price: { fontSize: 18, fontWeight: '700', color: Colors.purple600 },
+  title: { flex: 1, fontSize: 22, fontFamily: Fonts.bold, color: Colors.textPrimary, lineHeight: 28 },
+  price: { fontSize: 18, fontFamily: Fonts.bold, color: Colors.green600 },
 
   pills: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   pill: {
@@ -302,26 +303,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
   },
-  pillText: { fontSize: 12, fontWeight: '500', color: Colors.textSecondary },
+  pillText: { fontFamily: Fonts.regular, fontSize: 12, color: Colors.textSecondary },
 
   addressRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  address: { fontSize: 13, color: Colors.textTertiary, flex: 1 },
+  address: { fontFamily: Fonts.regular, fontSize: 13, color: Colors.textTertiary, flex: 1 },
 
   divider: { height: 0.5, backgroundColor: Colors.borderLight, marginVertical: 4 },
-  sectionLabel: { fontSize: 13, fontWeight: '600', color: Colors.textSecondary, marginBottom: 4 },
-  description: { fontSize: 14, color: Colors.textSecondary, lineHeight: 22 },
+  sectionLabel: { fontSize: 13, fontFamily: Fonts.bold, color: Colors.textSecondary, marginBottom: 4 },
+  description: { fontFamily: Fonts.regular, fontSize: 14, color: Colors.textSecondary, lineHeight: 22 },
 
   landlordRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   landlordAvatar: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: Colors.purple50,
+    backgroundColor: Colors.green50,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  landlordInitial: { fontSize: 16, fontWeight: '700', color: Colors.purple600 },
-  landlordName: { fontSize: 15, fontWeight: '500', color: Colors.textPrimary },
+  landlordInitial: { fontSize: 16, fontFamily: Fonts.bold, color: Colors.green600 },
+  landlordName: { fontFamily: Fonts.regular, fontSize: 15, color: Colors.textPrimary },
 
   actions: {
     flexDirection: 'row',
@@ -348,5 +349,5 @@ const styles = StyleSheet.create({
   },
   actionWhatsApp: { backgroundColor: '#25D366' },
   actionDisabled: { opacity: 0.4 },
-  actionText: { fontSize: 15, fontWeight: '600' },
+  actionText: { fontSize: 15, fontFamily: Fonts.bold },
 })

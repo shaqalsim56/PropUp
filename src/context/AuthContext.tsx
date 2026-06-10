@@ -23,44 +23,56 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   const fetchProfile = useCallback(async (userId: string) => {
-    let { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single()
-
-    // Trigger may still be running on first signup — retry once
-    if (!data) {
-      await new Promise(r => setTimeout(r, 800))
-      const { data: retried } = await supabase
+    try {
+      let { data } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single()
-      data = retried
-    }
 
-    // Trigger never ran for this user — create profile from auth metadata
-    if (!data) {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        await supabase.from('profiles').insert({
-          id: userId,
-          role: user.user_metadata?.role ?? 'student',
-          full_name: user.user_metadata?.full_name ?? '',
-          phone: user.phone ?? null,
-        })
-        const { data: created } = await supabase
+      // Trigger may still be running on first signup — retry once
+      if (!data) {
+        await new Promise(r => setTimeout(r, 800))
+        const { data: retried } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', userId)
           .single()
-        data = created
+        data = retried
       }
-    }
 
-    setProfile(data)
-    setLoading(false)
+      // Trigger never ran for this user (e.g. Google sign-in has no role in
+      // metadata) — create the profile from auth metadata, defaulting to student.
+      if (!data) {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
+          const { error: insertError } = await supabase.from('profiles').insert({
+            id: userId,
+            role: user.user_metadata?.role ?? 'student',
+            full_name:
+              user.user_metadata?.full_name ?? user.user_metadata?.name ?? '',
+            phone: user.phone ?? null,
+          })
+          if (insertError) {
+            console.warn('[profile self-heal] insert failed:', insertError.message)
+          }
+          const { data: created } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', userId)
+            .single()
+          data = created
+        }
+      }
+
+      setProfile(data)
+    } catch (e) {
+      console.warn('[fetchProfile] error:', e)
+      setProfile(null)
+    } finally {
+      // Always resolve loading so the app never hangs on the splash.
+      setLoading(false)
+    }
   }, [])
 
   const refreshProfile = useCallback(async () => {
@@ -74,10 +86,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       else setLoading(false)
     })
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
       if (session) {
-        await fetchProfile(session.user.id)
+        // Defer Supabase calls out of the auth callback. Running them inline
+        // deadlocks: onAuthStateChange holds the auth lock that these calls need.
+        setTimeout(() => { fetchProfile(session.user.id) }, 0)
       } else {
         setProfile(null)
         setLoading(false)

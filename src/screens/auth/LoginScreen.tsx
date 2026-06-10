@@ -1,15 +1,19 @@
 import { useState } from 'react'
 import {
   View, Text, StyleSheet, ScrollView, KeyboardAvoidingView,
-  Platform, TouchableOpacity, Animated,
+  Platform, TouchableOpacity,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
+import { Ionicons } from '@expo/vector-icons'
 import { supabase } from '../../lib/supabase'
 import { AuthStackParamList } from '../../navigation/types'
 import { Colors } from '../../constants/colors'
-import Input from '../../components/ui/Input'
-import Button from '../../components/ui/Button'
+import { Fonts } from '../../constants/fonts'
+import { useGoogleSignIn } from '../../hooks/useGoogleSignIn'
+import IconInput from '../../components/ui/IconInput'
+import PillButton from '../../components/ui/PillButton'
+import GoogleButton from '../../components/ui/GoogleButton'
 
 type Props = {
   navigation: NativeStackNavigationProp<AuthStackParamList, 'Login'>
@@ -21,6 +25,7 @@ export default function LoginScreen({ navigation }: Props) {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
+  const google = useGoogleSignIn()
 
   async function handleLogin() {
     if (!email.trim() || !password) {
@@ -61,44 +66,52 @@ export default function LoginScreen({ navigation }: Props) {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Text style={styles.back}>← Back</Text>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+            <Ionicons name="chevron-back" size={24} color={Colors.black} />
           </TouchableOpacity>
 
-          <Text style={styles.title}>Log in</Text>
+          <Text style={styles.title}>Welcome Back!</Text>
+          <Text style={styles.subtitle}>Best Way to Find Rentals Near your Campus</Text>
 
           <View style={styles.form}>
-            <Input
-              label="Email"
-              placeholder="you@email.com"
+            <IconInput
+              label="Email Address"
+              icon="mail-outline"
+              placeholder="Enter Your Email"
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
               editable={!success}
             />
-            <Input
+            <IconInput
               label="Password"
-              placeholder="Your password"
+              icon="lock-closed-outline"
+              placeholder="Enter Your Password"
               value={password}
               onChangeText={setPassword}
-              secureTextEntry
+              secure
               editable={!success}
             />
 
-            {error ? <Text style={styles.error}>{error}</Text> : null}
+            {error || google.error
+              ? <Text style={styles.error}>{error || google.error}</Text>
+              : null}
 
             {success ? (
-              <View style={styles.successBanner}>
+              <View style={styles.successPill}>
                 <Text style={styles.successText}>✓  Logged in successfully</Text>
               </View>
             ) : (
-              <Button
-                title="Log in"
-                variant="purple"
-                onPress={handleLogin}
-                loading={loading}
-              />
+              <PillButton title="Log In" onPress={handleLogin} loading={loading} />
             )}
+
+            <View style={styles.divider}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>or</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            <GoogleButton onPress={google.signIn} loading={google.loading} disabled={success} />
 
             <View style={styles.footer}>
               <Text style={styles.footerText}>Don't have an account?</Text>
@@ -114,27 +127,38 @@ export default function LoginScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.bgPage },
+  safe: { flex: 1, backgroundColor: Colors.white },
   container: { padding: 24, paddingBottom: 40 },
-  back: { fontSize: 14, color: Colors.purple600, marginBottom: 20 },
-  title: { fontSize: 24, fontWeight: '700', color: Colors.textPrimary, marginBottom: 24 },
-  form: { gap: 14 },
-  error: { fontSize: 13, color: '#C0392B' },
-  successBanner: {
-    height: 50,
-    borderRadius: 12,
+  backBtn: { width: 40, height: 40, justifyContent: 'center', marginLeft: -8, marginBottom: 12 },
+
+  title: { fontFamily: Fonts.bold, fontSize: 32, color: Colors.black },
+  subtitle: {
+    fontFamily: Fonts.regular,
+    fontSize: 15,
+    color: Colors.textSecondary,
+    marginTop: 6,
+    marginBottom: 28,
+  },
+
+  form: { gap: 18 },
+  error: { fontFamily: Fonts.regular, fontSize: 13, color: '#C0392B' },
+
+  successPill: {
+    height: 56,
+    borderRadius: 28,
     backgroundColor: Colors.green50,
     borderWidth: 1,
     borderColor: Colors.green600,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  successText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: Colors.green600,
-  },
+  successText: { fontFamily: Fonts.bold, fontSize: 15, color: Colors.green600 },
+
+  divider: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  dividerLine: { flex: 1, height: 1, backgroundColor: Colors.borderLight },
+  dividerText: { fontFamily: Fonts.regular, fontSize: 13, color: Colors.textTertiary },
+
   footer: { flexDirection: 'row', justifyContent: 'center', paddingVertical: 4 },
-  footerText: { fontSize: 13, color: Colors.textTertiary },
-  footerLink: { fontSize: 13, color: Colors.purple600, fontWeight: '500' },
+  footerText: { fontFamily: Fonts.regular, fontSize: 13, color: Colors.textTertiary },
+  footerLink: { fontFamily: Fonts.bold, fontSize: 13, color: Colors.green600 },
 })
