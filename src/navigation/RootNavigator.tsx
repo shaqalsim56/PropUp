@@ -10,11 +10,19 @@ import HomeScreen from '../screens/student/HomeScreen'
 import ListingDetailScreen from '../screens/student/ListingDetailScreen'
 import ProfileScreen from '../screens/student/ProfileScreen'
 import DashboardScreen from '../screens/landlord/DashboardScreen'
-import { StudentStackParamList, StudentTabParamList, LandlordStackParamList } from './types'
+import CreateListingScreen from '../screens/landlord/CreateListingScreen'
+import EditListingScreen from '../screens/landlord/EditListingScreen'
+import LandlordProfileScreen from '../screens/landlord/LandlordProfileScreen'
+import ConversationsScreen from '../screens/shared/ConversationsScreen'
+import ChatScreen from '../screens/shared/ChatScreen'
+import {
+  StudentStackParamList, StudentTabParamList, LandlordStackParamList, LandlordTabParamList,
+} from './types'
 
 const StudentStack = createNativeStackNavigator<StudentStackParamList>()
 const Tab = createBottomTabNavigator<StudentTabParamList>()
 const LandlordStack = createNativeStackNavigator<LandlordStackParamList>()
+const LandlordTab = createBottomTabNavigator<LandlordTabParamList>()
 
 function PlaceholderScreen() {
   return <View style={{ flex: 1, backgroundColor: Colors.bgPage }} />
@@ -30,10 +38,10 @@ function StudentTabs() {
         tabBarStyle: { backgroundColor: Colors.bgPrimary, borderTopColor: Colors.borderLight },
         tabBarIcon: ({ focused, color, size }) => {
           const icons: Record<string, [string, string]> = {
-            Home:    ['home',     'home-outline'],
-            Events:  ['calendar', 'calendar-outline'],
-            Saved:   ['bookmark', 'bookmark-outline'],
-            Profile: ['person',   'person-outline'],
+            Home:     ['home',        'home-outline'],
+            Saved:    ['bookmark',    'bookmark-outline'],
+            Messages: ['chatbubbles', 'chatbubbles-outline'],
+            Profile:  ['person',      'person-outline'],
           }
           const [active, inactive] = icons[route.name] ?? ['ellipse', 'ellipse-outline']
           return <Ionicons name={(focused ? active : inactive) as any} size={size} color={color} />
@@ -41,8 +49,8 @@ function StudentTabs() {
       })}
     >
       <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Events" component={PlaceholderScreen} />
       <Tab.Screen name="Saved" component={PlaceholderScreen} />
+      <Tab.Screen name="Messages" component={ConversationsScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>
   )
@@ -57,14 +65,44 @@ function StudentNavigator() {
         component={ListingDetailScreen}
         options={{ animation: 'slide_from_bottom' }}
       />
+      <StudentStack.Screen name="Chat" component={ChatScreen} />
     </StudentStack.Navigator>
+  )
+}
+
+function LandlordTabs() {
+  return (
+    <LandlordTab.Navigator
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        tabBarActiveTintColor: Colors.green600,
+        tabBarInactiveTintColor: Colors.textTertiary,
+        tabBarStyle: { backgroundColor: Colors.bgPrimary, borderTopColor: Colors.borderLight },
+        tabBarIcon: ({ focused, color, size }) => {
+          const icons: Record<string, [string, string]> = {
+            Listings:  ['home',          'home-outline'],
+            Inquiries: ['chatbubbles',   'chatbubbles-outline'],
+            Profile:   ['person',        'person-outline'],
+          }
+          const [active, inactive] = icons[route.name] ?? ['ellipse', 'ellipse-outline']
+          return <Ionicons name={(focused ? active : inactive) as any} size={size} color={color} />
+        },
+      })}
+    >
+      <LandlordTab.Screen name="Listings" component={DashboardScreen} />
+      <LandlordTab.Screen name="Inquiries" component={ConversationsScreen} />
+      <LandlordTab.Screen name="Profile" component={LandlordProfileScreen} />
+    </LandlordTab.Navigator>
   )
 }
 
 function LandlordNavigator() {
   return (
     <LandlordStack.Navigator screenOptions={{ headerShown: false }}>
-      <LandlordStack.Screen name="Dashboard" component={DashboardScreen} />
+      <LandlordStack.Screen name="MainTabs" component={LandlordTabs} />
+      <LandlordStack.Screen name="CreateListing" component={CreateListingScreen} options={{ animation: 'slide_from_bottom' }} />
+      <LandlordStack.Screen name="EditListing" component={EditListingScreen} options={{ animation: 'slide_from_bottom' }} />
+      <LandlordStack.Screen name="Chat" component={ChatScreen} />
     </LandlordStack.Navigator>
   )
 }

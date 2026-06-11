@@ -56,3 +56,26 @@ export interface ListingWithDetails extends Listing {
   listing_photos: ListingPhoto[]
   profiles: Pick<Profile, 'full_name' | 'phone'>
 }
+
+export interface Conversation {
+  id: string
+  listing_id: string
+  student_id: string
+  landlord_id: string
+  created_at: string
+  last_message_at: string
+}
+
+export interface Message {
+  id: string
+  conversation_id: string
+  sender_id: string
+  body: string
+  created_at: string
+}
+
+export interface ConversationWithDetails extends Conversation {
+  listings: Pick<Listing, 'title'> | null
+  student: Pick<Profile, 'full_name'> | null
+  landlord: Pick<Profile, 'full_name'> | null
+}

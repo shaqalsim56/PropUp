@@ -13,6 +13,7 @@ import { Fonts } from '../../constants/fonts'
 import { StudentStackParamList } from '../../navigation/types'
 import { ListingWithDetails } from '../../types/database.types'
 import { formatPrice, haversineKm, formatDistance } from '../../utils/distance'
+import { findOrCreateConversation } from '../../lib/conversations'
 
 type Props = NativeStackScreenProps<StudentStackParamList, 'ListingDetail'>
 
@@ -32,6 +33,7 @@ export default function ListingDetailScreen({ route, navigation }: Props) {
   const [saved, setSaved] = useState(false)
   const [saveLoading, setSaveLoading] = useState(false)
   const [photoIndex, setPhotoIndex] = useState(0)
+  const [msgLoading, setMsgLoading] = useState(false)
 
   const userLat = profile?.campus_lat ?? 17.997
   const userLng = profile?.campus_lng ?? -76.794
@@ -84,6 +86,23 @@ export default function ListingDetailScreen({ route, navigation }: Props) {
       setSaved(true)
     }
     setSaveLoading(false)
+  }
+
+  async function messageLandlord() {
+    if (!listing || !session) return
+    setMsgLoading(true)
+    const { id } = await findOrCreateConversation({
+      listingId: listing.id,
+      studentId: session.user.id,
+      landlordId: listing.landlord_id,
+    })
+    setMsgLoading(false)
+    if (id) {
+      navigation.navigate('Chat', {
+        conversationId: id,
+        headerTitle: listing.profiles.full_name ?? 'Landlord',
+      })
+    }
   }
 
   function callLandlord() {
@@ -221,6 +240,16 @@ export default function ListingDetailScreen({ route, navigation }: Props) {
               </Text>
             </View>
             <Text style={styles.landlordName}>{listing.profiles.full_name}</Text>
+            <TouchableOpacity style={styles.messageBtn} onPress={messageLandlord} disabled={msgLoading}>
+              {msgLoading
+                ? <ActivityIndicator size="small" color={Colors.white} />
+                : (
+                  <>
+                    <Ionicons name="chatbubble-outline" size={15} color={Colors.white} />
+                    <Text style={styles.messageBtnText}>Message</Text>
+                  </>
+                )}
+            </TouchableOpacity>
           </View>
 
           <View style={styles.divider} />
@@ -323,6 +352,19 @@ const styles = StyleSheet.create({
   },
   landlordInitial: { fontSize: 16, fontFamily: Fonts.bold, color: Colors.green600 },
   landlordName: { fontFamily: Fonts.regular, fontSize: 15, color: Colors.textPrimary },
+  messageBtn: {
+    marginLeft: 'auto',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    height: 36,
+    minWidth: 96,
+    paddingHorizontal: 14,
+    borderRadius: 18,
+    backgroundColor: Colors.green600,
+    justifyContent: 'center',
+  },
+  messageBtnText: { fontFamily: Fonts.bold, fontSize: 13, color: Colors.white },
 
   actions: {
     flexDirection: 'row',
