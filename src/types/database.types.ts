@@ -9,6 +9,7 @@ export interface Profile {
   campus_lat: number | null
   campus_lng: number | null
   student_id_url: string | null
+  verification_status: 'pending' | 'approved' | 'rejected' | null
   created_at: string
   updated_at: string
 }

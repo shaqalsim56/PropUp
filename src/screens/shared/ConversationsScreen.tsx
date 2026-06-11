@@ -7,7 +7,17 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { Colors } from '../../constants/colors'
 import { Fonts } from '../../constants/fonts'
-import { ConversationWithDetails } from '../../types/database.types'
+
+interface ConversationListItem {
+  id: string
+  listing_id: string
+  listing_title: string | null
+  other_name: string | null
+  is_landlord: boolean
+  last_message: string | null
+  last_message_at: string
+  unread_count: number
+}
 
 function timeAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime()
@@ -23,16 +33,13 @@ export default function ConversationsScreen() {
   const navigation = useNavigation<any>()
   const { profile, session } = useAuth()
   const isLandlord = profile?.role === 'landlord'
-  const [convos, setConvos] = useState<ConversationWithDetails[]>([])
+  const [convos, setConvos] = useState<ConversationListItem[]>([])
   const [loading, setLoading] = useState(true)
 
   const fetchConvos = useCallback(async () => {
     if (!session) return
-    const { data } = await supabase
-      .from('conversations')
-      .select('*, listings(title), student:profiles!conversations_student_id_fkey(full_name), landlord:profiles!conversations_landlord_id_fkey(full_name)')
-      .order('last_message_at', { ascending: false })
-    setConvos((data ?? []) as ConversationWithDetails[])
+    const { data } = await supabase.rpc('get_conversations')
+    setConvos((data ?? []) as ConversationListItem[])
     setLoading(false)
   }, [session])
 
@@ -63,9 +70,11 @@ export default function ConversationsScreen() {
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) => {
-            const otherName = (isLandlord ? item.student?.full_name : item.landlord?.full_name) ?? 'User'
-            const listingTitle = item.listings?.title ?? 'Listing'
+            const otherName = item.other_name ?? 'User'
             const initial = otherName.charAt(0).toUpperCase()
+            const unread = item.unread_count > 0
+            const preview = item.last_message
+              ?? `About: ${item.listing_title ?? 'listing'}`
             return (
               <TouchableOpacity
                 style={styles.row}
@@ -74,10 +83,19 @@ export default function ConversationsScreen() {
               >
                 <View style={styles.avatar}><Text style={styles.avatarText}>{initial}</Text></View>
                 <View style={styles.rowBody}>
-                  <Text style={styles.rowName} numberOfLines={1}>{otherName}</Text>
-                  <Text style={styles.rowListing} numberOfLines={1}>{listingTitle}</Text>
+                  <Text style={[styles.rowName, unread && styles.bold]} numberOfLines={1}>{otherName}</Text>
+                  <Text style={[styles.rowPreview, unread && styles.previewUnread]} numberOfLines={1}>
+                    {preview}
+                  </Text>
                 </View>
-                <Text style={styles.rowTime}>{timeAgo(item.last_message_at)}</Text>
+                <View style={styles.rowEnd}>
+                  <Text style={styles.rowTime}>{timeAgo(item.last_message_at)}</Text>
+                  {unread && (
+                    <View style={styles.badge}>
+                      <Text style={styles.badgeText}>{item.unread_count > 99 ? '99+' : item.unread_count}</Text>
+                    </View>
+                  )}
+                </View>
               </TouchableOpacity>
             )
           }}
@@ -112,12 +130,20 @@ const styles = StyleSheet.create({
     borderColor: Colors.borderLight,
   },
   avatar: {
-    width: 44, height: 44, borderRadius: 22, backgroundColor: Colors.green600,
+    width: 46, height: 46, borderRadius: 23, backgroundColor: Colors.green600,
     alignItems: 'center', justifyContent: 'center',
   },
   avatarText: { fontFamily: Fonts.bold, fontSize: 18, color: Colors.white },
   rowBody: { flex: 1, gap: 2 },
-  rowName: { fontFamily: Fonts.bold, fontSize: 15, color: Colors.textPrimary },
-  rowListing: { fontFamily: Fonts.regular, fontSize: 13, color: Colors.textTertiary },
+  rowName: { fontFamily: Fonts.regular, fontSize: 15, color: Colors.textPrimary },
+  bold: { fontFamily: Fonts.bold },
+  rowPreview: { fontFamily: Fonts.regular, fontSize: 13, color: Colors.textTertiary },
+  previewUnread: { color: Colors.textPrimary, fontFamily: Fonts.bold },
+  rowEnd: { alignItems: 'flex-end', gap: 6 },
   rowTime: { fontFamily: Fonts.regular, fontSize: 12, color: Colors.textTertiary },
+  badge: {
+    minWidth: 20, height: 20, borderRadius: 10, paddingHorizontal: 6,
+    backgroundColor: Colors.green600, alignItems: 'center', justifyContent: 'center',
+  },
+  badgeText: { fontFamily: Fonts.bold, fontSize: 11, color: Colors.white },
 })

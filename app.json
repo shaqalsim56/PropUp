@@ -41,7 +41,8 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "PropUp needs access to your photos so you can upload your student ID."
+          "photosPermission": "PropUp needs access to your photos so you can upload your student ID and listing photos.",
+          "cameraPermission": "PropUp needs camera access so you can take a photo of your student ID."
         }
       ]
     ]

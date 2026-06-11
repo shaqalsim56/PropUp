@@ -141,19 +141,20 @@ export default function HomeScreen() {
   const mapRef = useRef<MapView>(null)
 
   const [viewMode, setViewMode] = useState<ViewMode>('map')
-  const [selected, setSelected] = useState<ListingWithDetails | null>(null)
   const [search, setSearch] = useState('')
   const [filterVisible, setFilterVisible] = useState(false)
   const [filters, setFilters] = useState<Filters>({ maxPrice: '', bedrooms: null })
   const [verifyVisible, setVerifyVisible] = useState(false)
 
-  // Students must verify their ID before they can open a listing. They can
-  // still browse the map/list in the meantime.
-  const needsVerification = profile?.role === 'student' && !profile?.student_id_url
+  // Students must be APPROVED before they can open a listing. They can still
+  // browse the map/list while unverified or under review.
+  const vStatus = profile?.verification_status
+  const needsVerification = profile?.role === 'student' && vStatus !== 'approved'
 
   useEffect(() => {
-    if (needsVerification) setVerifyVisible(true)
-  }, [needsVerification])
+    // Auto-popup only when action is needed — not while it's pending review.
+    if (needsVerification && vStatus !== 'pending') setVerifyVisible(true)
+  }, [needsVerification, vStatus])
 
   const userLat = profile?.campus_lat ?? DEFAULT_LAT
   const userLng = profile?.campus_lng ?? DEFAULT_LNG
@@ -224,7 +225,7 @@ export default function HomeScreen() {
           <TouchableOpacity
             key={mode}
             style={[styles.toggleTab, viewMode === mode && styles.toggleTabActive]}
-            onPress={() => { setViewMode(mode); setSelected(null) }}
+            onPress={() => setViewMode(mode)}
           >
             <Text style={[styles.toggleText, viewMode === mode && styles.toggleTextActive]}>
               {mode.charAt(0).toUpperCase() + mode.slice(1)}
@@ -238,8 +239,14 @@ export default function HomeScreen() {
 
       {needsVerification && (
         <TouchableOpacity style={styles.verifyBanner} onPress={() => setVerifyVisible(true)} activeOpacity={0.8}>
-          <Ionicons name="shield-checkmark-outline" size={16} color={Colors.green600} />
-          <Text style={styles.verifyBannerText}>Verify your student ID to unlock listings</Text>
+          <Ionicons name={vStatus === 'pending' ? 'time-outline' : 'shield-checkmark-outline'} size={16} color={Colors.green600} />
+          <Text style={styles.verifyBannerText}>
+            {vStatus === 'pending'
+              ? 'Student ID under review'
+              : vStatus === 'rejected'
+                ? 'ID not approved — tap to re-upload'
+                : 'Verify your student ID to unlock listings'}
+          </Text>
           <Ionicons name="chevron-forward" size={16} color={Colors.green600} />
         </TouchableOpacity>
       )}
@@ -257,7 +264,6 @@ export default function HomeScreen() {
             provider={PROVIDER_GOOGLE}
             style={StyleSheet.absoluteFill}
             initialRegion={initialRegion}
-            onPress={() => setSelected(null)}
             showsUserLocation
             showsMyLocationButton={false}
           >
@@ -265,18 +271,18 @@ export default function HomeScreen() {
               <Marker
                 key={listing.id}
                 coordinate={{ latitude: listing.lat, longitude: listing.lng }}
-                onPress={() => setSelected(listing)}
+                anchor={{ x: 0.5, y: 1 }}
+                onPress={() => goToDetail(listing.id)}
               >
-                <View style={[
-                  styles.markerBubble,
-                  selected?.id === listing.id && styles.markerBubbleSelected,
-                ]}>
-                  <Text style={[
-                    styles.markerText,
-                    selected?.id === listing.id && styles.markerTextSelected,
-                  ]}>
-                    {`J$${Math.round(listing.price_per_month / 1000)}k`}
-                  </Text>
+                <View style={styles.pin}>
+                  <View style={styles.pinHead}>
+                    <Image
+                      source={require('../../../assets/logo.png')}
+                      style={styles.pinLogo}
+                      resizeMode="contain"
+                    />
+                  </View>
+                  <View style={styles.pinTip} />
                 </View>
               </Marker>
             ))}
@@ -286,21 +292,6 @@ export default function HomeScreen() {
           {filtered.length === 0 && (
             <View style={styles.mapEmpty}>
               <Text style={styles.mapEmptyText}>No listings in this area yet</Text>
-            </View>
-          )}
-
-          {/* Selected listing card */}
-          {selected && (
-            <View style={styles.mapCard}>
-              <ListingCard
-                listing={selected}
-                distance={distanceTo(selected)}
-                onPress={() => goToDetail(selected.id)}
-                compact
-              />
-              <TouchableOpacity style={styles.mapCardClose} onPress={() => setSelected(null)}>
-                <Ionicons name="close" size={16} color={Colors.textSecondary} />
-              </TouchableOpacity>
             </View>
           )}
         </View>
@@ -430,40 +421,33 @@ const styles = StyleSheet.create({
   },
   mapEmptyText: { fontFamily: Fonts.regular, fontSize: 13, color: Colors.textSecondary },
 
-  markerBubble: {
-    backgroundColor: Colors.bgPrimary,
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderWidth: 1.5,
+  pin: { alignItems: 'center' },
+  pinHead: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: Colors.white,
+    borderWidth: 2,
     borderColor: Colors.green600,
-    shadowColor: '#000',
-    shadowOpacity: 0.12,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  markerBubbleSelected: {
-    backgroundColor: Colors.green600,
-  },
-  markerText: { fontSize: 12, fontFamily: Fonts.bold, color: Colors.green600 },
-  markerTextSelected: { color: Colors.green50 },
-
-  mapCard: {
-    position: 'absolute',
-    bottom: 16,
-    left: 16,
-    right: 16,
-  },
-  mapCardClose: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: Colors.bgSecondary,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.18,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 4,
+  },
+  pinLogo: { width: 30, height: 30 },
+  pinTip: {
+    width: 0,
+    height: 0,
+    borderLeftWidth: 6,
+    borderRightWidth: 6,
+    borderTopWidth: 9,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+    borderTopColor: Colors.green600,
+    marginTop: -2,
   },
 
   listContent: { padding: 16, gap: 12 },
